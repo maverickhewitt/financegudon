@@ -1,0 +1,6 @@
+[[redirects]]
+  # This rule ensures that React Router handles all requests, 
+  # preventing 404 errors on page refresh
+  from = "/*"
+  to = "/index.html"
+  status = 200
