@@ -1,0 +1,65 @@
+import React from "react";
+import { Card } from "../../../components/ui/Card";
+import { formatRM } from "../../../utils/formatters";
+
+export const SummaryCards = ({ bakiTabung = [] }) => {
+  // Kira jumlah agregat merentasi semua tabung kampung
+  const totalMasuk = bakiTabung.reduce(
+    (sum, item) => sum + Number(item.total_masuk || 0),
+    0,
+  );
+  const totalKeluar = bakiTabung.reduce(
+    (sum, item) => sum + Number(item.total_keluar || 0),
+    0,
+  );
+  const bakiSemasa = totalMasuk - totalKeluar;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+      {/* 1. KAD BAKI SEMASA (Paling Penting & Besar) */}
+      <Card className="border-l-8 border-l-blue-600 bg-gradient-to-br from-white to-blue-50/30">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs sm:text-sm font-bold text-blue-800 uppercase tracking-wider">
+            💰 BAKI SEMASA (JUMLAH DANA)
+          </span>
+          <span className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight mt-1">
+            {formatRM(bakiSemasa)}
+          </span>
+          <span className="text-xs text-gray-400 font-medium mt-1">
+            Duit bersih yang boleh digunakan sekarang
+          </span>
+        </div>
+      </Card>
+
+      {/* 2. KAD DUIT MASUK */}
+      <Card className="border-l-8 border-l-emerald-600 bg-gradient-to-br from-white to-emerald-50/30">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs sm:text-sm font-bold text-emerald-800 uppercase tracking-wider">
+            📈 TOTAL KESELURUHAN MASUK
+          </span>
+          <span className="text-2xl sm:text-3xl font-black text-emerald-600 tracking-tight mt-1">
+            {formatRM(totalMasuk)}
+          </span>
+          <span className="text-xs text-gray-400 font-medium mt-1">
+            Semua pungutan & sumbangan terkumpul
+          </span>
+        </div>
+      </Card>
+
+      {/* 3. KAD DUIT KELUAR */}
+      <Card className="border-l-8 border-l-rose-600 bg-gradient-to-br from-white to-rose-50/30 sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs sm:text-sm font-bold text-rose-800 uppercase tracking-wider">
+            📉 TOTAL KESELURUHAN KELUAR
+          </span>
+          <span className="text-2xl sm:text-3xl font-black text-rose-600 tracking-tight mt-1">
+            {formatRM(totalKeluar)}
+          </span>
+          <span className="text-xs text-gray-400 font-medium mt-1">
+            Semua perbelanjaan, bil & bantuan keluar
+          </span>
+        </div>
+      </Card>
+    </div>
+  );
+};
