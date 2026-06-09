@@ -6,12 +6,12 @@ export const useBukuTunai = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Ambil senarai semua duit masuk & keluar
   const fetchTransactions = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // 🔥 KEMASKINI DI SINI: Masukkan 'url_resit' dalam senarai select
       const { data, error: fetchError } = await supabase
         .from("buku_tunai")
         .select(
@@ -22,6 +22,7 @@ export const useBukuTunai = () => {
           jumlah,
           keterangan,
           tabung_id,
+          url_resit, 
           tabung ( nama )
         `,
         )
@@ -38,17 +39,14 @@ export const useBukuTunai = () => {
     }
   };
 
-  // Fungsi untuk simpan transaksi baru (Duit Masuk / Duit Keluar)
   const addTransaction = async (transactionData) => {
     try {
-      // transactionData mesti mengandungi: tabung_id, tarikh, jenis, jumlah, keterangan
       const { error: insertError } = await supabase
         .from("buku_tunai")
         .insert([transactionData]);
 
       if (insertError) throw insertError;
 
-      // Segarkan data serta-merta selepas berjaya simpan
       await fetchTransactions();
       return { success: true };
     } catch (err) {
