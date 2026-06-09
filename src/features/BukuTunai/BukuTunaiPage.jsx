@@ -35,7 +35,7 @@ export const BukuTunaiPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-gray-950 tracking-tight">
-            📖 Buku Tunai Utama
+            Buku Tunai Utama
           </h2>
           <p className="text-sm text-gray-500 font-medium">
             Senarai rekod aliran duit masuk dan keluar kampung secara
