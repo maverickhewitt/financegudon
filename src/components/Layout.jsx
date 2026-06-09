@@ -78,7 +78,7 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-      <header className="bg-emerald-900 text-white shadow-md sticky top-0 z-45 print:hidden shrink-0">
+      <header className="bg-emerald-900 text-white shadow-md md:sticky md:top-0 z-45 print:hidden shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="text-center md:text-left">
             <h1 className="text-lg md:text-xl font-bold tracking-wide text-green-400">
