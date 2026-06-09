@@ -14,7 +14,7 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
       {/* 1. KEPALA MENU (NAVBAR) UNTUK TELEFON / TABLET */}
       <div className="bg-blue-900 text-white p-4 flex flex-col gap-2 md:hidden shadow-md">
         <div className="text-center font-black text-lg tracking-wider">
-          SK KAMPUNG GUDON
+          Sistem Kewangan
         </div>
         <div className="grid grid-cols-2 gap-2 mt-2">
           {menuItems.map((item) => (
@@ -37,7 +37,7 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
             SISTEM KEWANGAN
           </h1>
           <p className="text-xs text-blue-200 mt-1 font-semibold">
-            Kampung Gudon, Sabah
+            MASJID AL-MUJAHIDIN, Kampung Gudon, Sabah
           </p>
         </div>
 
