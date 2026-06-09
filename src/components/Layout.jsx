@@ -14,7 +14,7 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
       {/* 1. KEPALA MENU (NAVBAR) UNTUK TELEFON / TABLET */}
       <div className="bg-blue-900 text-white p-4 flex flex-col gap-2 md:hidden shadow-md">
         <div className="text-center font-black text-lg tracking-wider">
-          🏰 SK KAMPUNG GUDON
+          SK KAMPUNG GUDON
         </div>
         <div className="grid grid-cols-2 gap-2 mt-2">
           {menuItems.map((item) => (
@@ -57,10 +57,6 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
             </button>
           ))}
         </nav>
-
-        <div className="text-center pt-4 border-t border-blue-900 text-xs text-blue-300 font-medium">
-          Minkaco Studio v1.0
-        </div>
       </aside>
 
       {/* 3. RUANG UTAMA (KANDUNGAN HALAMAN) */}

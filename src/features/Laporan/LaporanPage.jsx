@@ -17,7 +17,7 @@ export const LaporanPage = () => {
     { id: "4", nama: "April" },
     { id: "5", nama: "Mei" },
     { id: "6", nama: "Jun" },
-    { id: "7", nama: "Kulai" },
+    { id: "7", nama: "Julai" },
     { id: "8", nama: "Ogos" },
     { id: "9", nama: "September" },
     { id: "10", nama: "Oktober" },
@@ -47,14 +47,45 @@ export const LaporanPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 🔥 MASTER PRINT OVERRIDE: Targets and clears out the mobile header grid elements */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @media print {
+          /* Hides sidebars, mobile headers, navigation buttons, and any action buttons */
+          aside, nav, header, button, .print\\:hidden,
+          div.bg-blue-900, /* Targets mobile navbar container directly */
+          div.grid-cols-2 { /* Targets mobile navbar link grid layout */
+            display: none !important;
+          }
+          
+          /* Force core layout shell to occupy 100% of the plain white page background */
+          main, .min-h-screen, body, div {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            width: 100% !important;
+          }
+          
+          /* Set solid standard printing document edge padding margins */
+          @page {
+            margin: 2cm 1.5cm;
+          }
+        }
+      `,
+        }}
+      />
+
       {/* BAHAGIAN KEPALA - DISEMBUNYIKAN SEWAKTU PRINT */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <div>
           <h2 className="text-2xl font-black text-gray-950 tracking-tight">
-            FAIL: ReportFilter.jsx / Penyata Berkala
+            Penyata Berkala
           </h2>
           <p className="text-sm text-gray-500 font-medium">
-            Penyata rasas bulanan dan tahunan kampung yang dikemaskini secara
+            Penyata rasmi bulanan dan tahunan kampung yang dikemaskini secara
             langsung.
           </p>
         </div>

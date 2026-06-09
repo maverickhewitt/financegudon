@@ -20,7 +20,7 @@ export const DashboardPage = () => {
   if (error) {
     return (
       <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 font-semibold">
-        ⚠️ Ralat sistem: {error}. Sila segarkan semula halaman.
+        Ralat sistem: {error}. Sila segarkan semula halaman.
       </div>
     );
   }
@@ -31,7 +31,7 @@ export const DashboardPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-black text-gray-950 tracking-tight">
-            📊 Paparan Pungutan & Baki Semasa
+            Paparan Pungutan & Baki Semasa
           </h2>
           <p className="text-sm text-gray-500 font-medium">
             Ringkasan kedudukan kewangan semasa seluruh kampung.
@@ -40,7 +40,7 @@ export const DashboardPage = () => {
         <button
           onClick={refreshTabung}
           className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 transition-colors cursor-pointer">
-          🔄 Semak Duit Terbaru
+          Semak Duit Terbaru
         </button>
       </div>
 
@@ -50,7 +50,7 @@ export const DashboardPage = () => {
       {/* Pecahan Dana Mengikut Tabung Berbeza */}
       <div>
         <h3 className="text-lg font-bold text-gray-800 mb-4 tracking-wide">
-          💰 Pecahan Duit Ikut Tabung / Dana
+          Pecahan Duit Ikut Tabung / Dana
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {bakiTabung.map((tabung) => {
