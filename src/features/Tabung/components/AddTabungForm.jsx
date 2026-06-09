@@ -25,7 +25,6 @@ export const AddTabungForm = ({ onSave, onCancel }) => {
       setNama("");
       setPenerangan("");
     } else {
-      // Mengendalikan ralat sekiranya nama tabung sudah wujud (Duplicate constraint)
       setErrorBorang(
         hasil.error?.includes("duplicate")
           ? "Nama tabung ini sudah wujud! Sila gunakan nama lain."
@@ -35,41 +34,41 @@ export const AddTabungForm = ({ onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={kendaliHantar} className="flex flex-col gap-2">
+    <form onSubmit={kendaliHantar} className="flex flex-col gap-4">
       <Input
         label="Nama Tabung / Dana Baru"
         id="nama_tabung"
-        placeholder="Contoh: Tabung Anak Yatim, Tabung Baik Pulih Jeti"
+        placeholder="Contoh: Tabung Anak Yatim, Tabung Kebajikan"
         value={nama}
         onChange={(e) => setNama(e.target.value)}
         required
         disabled={submitting}
       />
 
-      <div className="flex flex-col gap-2 mb-4">
+      <div className="flex flex-col gap-2">
         <label
           htmlFor="penerangan_tabung"
-          className="text-gray-700 font-bold text-sm sm:text-base">
+          className="text-gray-700 font-bold text-base">
           Penerangan / Tujuan Tabung
         </label>
         <textarea
           id="penerangan_tabung"
           rows="3"
-          placeholder="Tulis tujuan dana ini diwujudkan (Contoh: Khas untuk bantuan persekolahan anak kariah Gudon)"
+          placeholder="Tulis tujuan dana ini diwujudkan secara ringkas"
           value={penerangan}
           onChange={(e) => setPenerangan(e.target.value)}
           disabled={submitting}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-medium text-gray-800"
+          className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base outline-none focus:border-green-600 focus:ring-4 focus:ring-green-50 font-semibold text-gray-800 shadow-sm"
         />
       </div>
 
       {errorBorang && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-lg mb-2">
-          ⚠️ {errorBorang}
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-xl">
+          {errorBorang}
         </div>
       )}
 
-      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 pt-2 border-t border-gray-100">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 pt-3 border-t border-gray-100">
         <Button variant="secondary" onClick={onCancel} disabled={submitting}>
           Batal
         </Button>

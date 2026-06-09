@@ -27,11 +27,10 @@ export const DashboardPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Bahagian Tajuk Atas */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-950 tracking-tight">
-            Paparan Pungutan & Baki Semasa
+          <h2 className="text-2xl font-bold text-gray-950 tracking-tight">
+            Paparan Pungutan dan Baki Semasa
           </h2>
           <p className="text-sm text-gray-500 font-medium">
             Ringkasan kedudukan kewangan semasa seluruh kampung.
@@ -39,18 +38,16 @@ export const DashboardPage = () => {
         </div>
         <button
           onClick={refreshTabung}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 transition-colors cursor-pointer">
+          className="bg-white hover:bg-gray-50 text-green-700 px-5 py-3.5 rounded-xl text-sm font-bold border border-gray-200 shadow-sm transition-colors cursor-pointer w-full sm:w-auto text-center">
           Semak Duit Terbaru
         </button>
       </div>
 
-      {/* 3 Kad Ringkasan Besar (Dari Batch 5) */}
       <SummaryCards bakiTabung={bakiTabung} />
 
-      {/* Pecahan Dana Mengikut Tabung Berbeza */}
       <div>
         <h3 className="text-lg font-bold text-gray-800 mb-4 tracking-wide">
-          Pecahan Duit Ikut Tabung / Dana
+          Pecahan Duit Ikut Tabung Dan Dana
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {bakiTabung.map((tabung) => {
@@ -58,29 +55,28 @@ export const DashboardPage = () => {
             return (
               <Card
                 key={tabung.tabung_id}
-                className="flex flex-col justify-between">
+                className="flex flex-col justify-between p-5 rounded-2xl border-gray-200 shadow-sm">
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <h4 className="text-base font-bold text-gray-900">
                       {tabung.nama_tabung}
                     </h4>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      ID: {tabung.tabung_id.substring(0, 8)}...
-                    </p>
                   </div>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider
-                    ${baki >= 0 ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}
-                  `}>
+                    className={`px-3 py-1 rounded-xl text-xs font-bold tracking-wider ${
+                      baki >= 0
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-rose-50 text-rose-800 border border-rose-200"
+                    }`}>
                     {baki >= 0 ? "Selamat" : "Kurangan"}
                   </span>
                 </div>
 
-                <div className="mt-6 flex justify-between items-baseline border-t border-gray-50 pt-3">
+                <div className="mt-6 flex justify-between items-baseline border-t border-gray-100 pt-3">
                   <span className="text-xs text-gray-400 font-bold">
                     BAKI DANA:
                   </span>
-                  <span className="text-xl font-extrabold text-gray-900">
+                  <span className="text-xl font-bold text-gray-900">
                     {formatRM(baki)}
                   </span>
                 </div>

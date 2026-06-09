@@ -29,12 +29,10 @@ export const LaporanPage = () => {
     janaLaporan(tahun, bulan);
   }, [tahun, bulan]);
 
-  // Fungsi cetak khas fail fizikal
   const kendaliCetak = () => {
     window.print();
   };
 
-  // Kira jumlah ringkasan bawah jadual laporan
   const totalMasuk = dataLaporan.reduce(
     (sum, item) => sum + Number(item.total_masuk || 0),
     0,
@@ -47,19 +45,16 @@ export const LaporanPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* 🔥 MASTER PRINT OVERRIDE: Targets and clears out the mobile header grid elements */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
         @media print {
-          /* Hides sidebars, mobile headers, navigation buttons, and any action buttons */
           aside, nav, header, button, .print\\:hidden,
-          div.bg-blue-900, /* Targets mobile navbar container directly */
-          div.grid-cols-2 { /* Targets mobile navbar link grid layout */
+          div.bg-emerald-800,
+          div.grid-cols-2 {
             display: none !important;
           }
           
-          /* Force core layout shell to occupy 100% of the plain white page background */
           main, .min-h-screen, body, div {
             padding: 0 !important;
             margin: 0 !important;
@@ -69,7 +64,6 @@ export const LaporanPage = () => {
             width: 100% !important;
           }
           
-          /* Set solid standard printing document edge padding margins */
           @page {
             margin: 2cm 1.5cm;
           }
@@ -78,35 +72,33 @@ export const LaporanPage = () => {
         }}
       />
 
-      {/* BAHAGIAN KEPALA - DISEMBUNYIKAN SEWAKTU PRINT */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <div>
-          <h2 className="text-2xl font-black text-gray-950 tracking-tight">
+          <h2 className="text-2xl font-bold text-gray-950 tracking-tight">
             Penyata Berkala
           </h2>
           <p className="text-sm text-gray-500 font-medium">
-            Penyata rasmi bulanan dan tahunan kampung yang dikemaskini secara
+            Penyata rasmi bulanan dan tahunan masjid yang dikemaskini secara
             langsung.
           </p>
         </div>
         <button
           onClick={kendaliCetak}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl shadow transition-all cursor-pointer w-full sm:w-auto">
-          🖨️ Cetak Laporan Ke Kertas
+          className="bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-3.5 rounded-xl shadow-sm transition-all cursor-pointer w-full sm:w-auto text-center text-base">
+          Cetak Laporan Ke Kertas
         </button>
       </div>
 
-      {/* KOTAK TAPISAN (FILTER INPUT) - DISEMBUNYIKAN SEWAKTU PRINT */}
       <Card className="print:hidden bg-white border border-gray-200">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-750 font-bold mb-2 text-sm">
+            <label className="block text-gray-700 font-bold mb-2 text-base">
               Pilih Bulan
             </label>
             <select
               value={bulan}
               onChange={(e) => setBulan(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white font-medium text-gray-800 focus:ring-2 focus:ring-blue-150 outline-none">
+              className="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white font-semibold text-gray-800 focus:border-green-600 focus:ring-4 focus:ring-green-50 outline-none shadow-sm">
               <option value="semua">-- Keseluruhan Tahun (Tahunan) --</option>
               {senaraiBulan.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -116,13 +108,13 @@ export const LaporanPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-gray-750 font-bold mb-2 text-sm">
+            <label className="block text-gray-700 font-bold mb-2 text-base">
               Pilih Tahun
             </label>
             <select
               value={tahun}
               onChange={(e) => setTahun(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white font-medium text-gray-800 focus:ring-2 focus:ring-blue-150 outline-none">
+              className="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white font-semibold text-gray-800 focus:border-green-600 focus:ring-4 focus:ring-green-50 outline-none shadow-sm">
               <option value={tahunSemasa}>{tahunSemasa}</option>
               <option value={tahunSemasa - 1}>{tahunSemasa - 1}</option>
               <option value={tahunSemasa - 2}>{tahunSemasa - 2}</option>
@@ -131,12 +123,10 @@ export const LaporanPage = () => {
         </div>
       </Card>
 
-      {/* FAIL: PrintView.jsx - KAWASAN UTAMA YANG AKAN DICETAK */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm print:shadow-none print:border-none print:p-0">
-        {/* Kepala Surat Rasmi (Hanya Jelas Bila Cetak / PrintView) */}
         <div className="text-center border-b-2 border-gray-800 pb-5 mb-6">
-          <h2 className="text-xl font-black uppercase text-gray-900 tracking-wide">
-            Penyata Kewangan Rasmi Kumpulan Wang Kampung Gudon
+          <h2 className="text-xl font-bold uppercase text-gray-900 tracking-wide">
+            Penyata Kewangan Rasmi Kumpulan Wang Masjid Al-Mujahidin
           </h2>
           <p className="text-sm text-gray-600 font-bold mt-1">
             Laporan Bagi:{" "}
@@ -165,7 +155,7 @@ export const LaporanPage = () => {
               <thead>
                 <tr className="bg-gray-100 text-gray-800 text-sm font-bold border-b border-gray-300">
                   <th className="p-3 border-r border-gray-300">
-                    Nama Tabung / Dana Kampung
+                    Nama Tabung / Dana Masjid
                   </th>
                   <th className="p-3 text-right border-r border-gray-300">
                     Jumlah Masuk (RM)
@@ -189,13 +179,16 @@ export const LaporanPage = () => {
                       {formatRM(row.total_keluar).replace("RM", "").trim()}
                     </td>
                     <td
-                      className={`p-3 text-right font-black ${Number(row.baki_bersih) >= 0 ? "text-gray-900" : "text-rose-700"}`}>
+                      className={`p-3 text-right font-bold ${
+                        Number(row.baki_bersih) >= 0
+                          ? "text-gray-900"
+                          : "text-rose-700"
+                      }`}>
                       {formatRM(row.baki_bersih).replace("RM", "").trim()}
                     </td>
                   </tr>
                 ))}
-                {/* BARIS JUMLAH AKHIR KESELURUHAN */}
-                <tr className="bg-gray-50 font-black text-gray-950 border-t-2 border-gray-800">
+                <tr className="bg-gray-50 font-bold text-gray-950 border-t-2 border-gray-800">
                   <td className="p-3 border-r border-gray-300 uppercase tracking-wide">
                     JUMLAH KESELURUHAN (RM)
                   </td>
@@ -206,7 +199,9 @@ export const LaporanPage = () => {
                     {formatRM(totalKeluar).replace("RM", "").trim()}
                   </td>
                   <td
-                    className={`p-3 text-right text-base underline decoration-double ${totalBersih >= 0 ? "text-blue-950" : "text-rose-800"}`}>
+                    className={`p-3 text-right text-base underline decoration-double ${
+                      totalBersih >= 0 ? "text-emerald-950" : "text-rose-800"
+                    }`}>
                     {formatRM(totalBersih)}
                   </td>
                 </tr>
@@ -215,20 +210,19 @@ export const LaporanPage = () => {
           </div>
         )}
 
-        {/* Bahagian Tanda Tangan Pengesahan (Hanya Muncul Bila Cetak Fizikal) */}
         <div className="mt-16 hidden print:grid grid-cols-2 gap-12 text-sm font-bold text-center">
           <div className="flex flex-col items-center">
             <span className="mb-20">Disediakan Oleh,</span>
             <div className="w-48 border-b border-gray-800"></div>
             <span className="text-xs text-gray-500 mt-1">
-              (Bendahari Kampung Gudon)
+              (Bendahari Masjid Al-Mujahidin)
             </span>
           </div>
           <div className="flex flex-col items-center">
             <span className="mb-20">Disahkan Benar Oleh,</span>
             <div className="w-48 border-b border-gray-800"></div>
             <span className="text-xs text-gray-500 mt-1">
-              (Ketua Kampung / Pengerusi JKKK)
+              (Pengerusi Masjid Al-Mujahidin)
             </span>
           </div>
         </div>

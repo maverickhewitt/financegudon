@@ -16,8 +16,8 @@ export const Input = ({
       {label && (
         <label
           htmlFor={id}
-          className="text-gray-700 font-bold text-sm sm:text-base tracking-wide">
-          {label} {required && <span className="text-rose-500">*</span>}
+          className="text-gray-700 font-bold text-base tracking-wide">
+          {label} {required && <span className="text-rose-600">*</span>}
         </label>
       )}
       <input
@@ -27,17 +27,15 @@ export const Input = ({
         value={value}
         onChange={onChange}
         required={required}
-        className={`w-full px-4 py-3 border rounded-lg text-base outline-none transition-all duration-150
-          ${
-            error
-              ? "border-rose-500 bg-rose-50 focus:ring-2 focus:ring-rose-200"
-              : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          }
-        `}
+        className={`w-full px-4 py-3.5 border rounded-xl text-base outline-none transition-all duration-150 shadow-sm ${
+          error
+            ? "border-rose-500 bg-rose-50 focus:ring-4 focus:ring-rose-100"
+            : "border-gray-300 focus:border-green-600 focus:ring-4 focus:ring-green-50"
+        }`}
         {...props}
       />
       {error && (
-        <span className="text-rose-600 text-xs sm:text-sm font-medium mt-0.5">
+        <span className="text-rose-600 text-sm font-semibold mt-0.5">
           {error}
         </span>
       )}

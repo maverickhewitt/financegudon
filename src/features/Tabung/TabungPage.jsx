@@ -17,7 +17,6 @@ export const TabungPage = () => {
     refreshTabung,
   } = useTabung();
 
-  // States Pengurusan Modal & Borang
   const [modalTambahBuka, setModalTambahBuka] = useState(false);
   const [modalEditBuka, setModalEditBuka] = useState(false);
   const [modalPadamBuka, setModalPadamBuka] = useState(false);
@@ -29,19 +28,16 @@ export const TabungPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [errorAksi, setErrorAksi] = useState("");
 
-  // 1. Simpan Pendaftaran Baru
   const kendaliSimpanTabung = async (nama, penerangan) => {
     const hasil = await addTabung(nama, penerangan);
     if (hasil.success) setModalTambahBuka(false);
     return hasil;
   };
 
-  // 2. Lancar Aliran Kemaskini
   const cetusEdit = (tabung) => {
     setErrorAksi("");
     setTabungTerpilih(tabung);
     setEditNama(tabung.nama_tabung);
-    // Cari data asal penerangan jika tersimpan di bakiTabung array
     setEditPenerangan("");
     setModalEditBuka(true);
   };
@@ -65,7 +61,6 @@ export const TabungPage = () => {
     }
   };
 
-  // 3. Lancar Aliran Pemadaman
   const cetusPadam = (tabung) => {
     setErrorAksi("");
     setTabungTerpilih(tabung);
@@ -100,8 +95,8 @@ export const TabungPage = () => {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-950 tracking-tight">
-            Pungutan Tabung Berbeza (Subsidiary)
+          <h2 className="text-2xl font-bold text-gray-950 tracking-tight">
+            Pungutan Tabung Berbeza
           </h2>
           <p className="text-sm text-gray-500 font-medium">
             Pemantauan dana khas perkampungan Gudon.
@@ -110,8 +105,8 @@ export const TabungPage = () => {
         <Button
           variant="primary"
           onClick={() => setModalTambahBuka(true)}
-          className="!w-full sm:!w-auto">
-          ➕ Bina Tabung / Dana Baru
+          className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-base font-bold">
+          Bina Tabung Baru
         </Button>
       </div>
 
@@ -126,23 +121,21 @@ export const TabungPage = () => {
         ))}
       </div>
 
-      {/* MODAL 1: TAMBAH TABUNG BARU */}
       <Modal
         isOpen={modalTambahBuka}
         onClose={() => setModalTambahBuka(false)}
-        title="🏢 Daftarkan Tabung Kampung Baru">
+        title="Daftarkan Tabung Kampung Baru">
         <AddTabungForm
           onSave={kendaliSimpanTabung}
           onCancel={() => setModalTambahBuka(false)}
         />
       </Modal>
 
-      {/* MODAL 2: KEMASKINI NAMA/INFO TABUNG */}
       <Modal
         isOpen={modalEditBuka}
         onClose={() => setModalEditBuka(false)}
-        title="✏️ Kemaskini Maklumat Dana">
-        <form onSubmit={kendaliKemaskini} className="flex flex-col gap-2">
+        title="Kemaskini Maklumat Dana">
+        <form onSubmit={kendaliKemaskini} className="flex flex-col gap-4">
           <Input
             label="Nama Tabung"
             id="edit_nama"
@@ -150,23 +143,23 @@ export const TabungPage = () => {
             onChange={(e) => setEditNama(e.target.value)}
             required
           />
-          <div className="flex flex-col gap-2 mb-4">
-            <label className="text-gray-750 font-bold text-sm">
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-700 font-bold text-base">
               Penerangan Baru
             </label>
             <textarea
               rows="3"
               value={editPenerangan}
               onChange={(e) => setEditPenerangan(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-medium text-gray-800"
+              className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base outline-none focus:border-green-600 focus:ring-4 focus:ring-green-50 font-semibold text-gray-800 shadow-sm"
             />
           </div>
           {errorAksi && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-lg mb-2">
-              ⚠️ {errorAksi}
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-xl">
+              {errorAksi}
             </div>
           )}
-          <div className="flex justify-end gap-3 mt-4 pt-2 border-t border-gray-100">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 pt-3 border-t border-gray-100">
             <Button variant="secondary" onClick={() => setModalEditBuka(false)}>
               Batal
             </Button>
@@ -177,39 +170,38 @@ export const TabungPage = () => {
         </form>
       </Modal>
 
-      {/* MODAL 3: PENGESAHAN PADAM (SAFETY RAIL) */}
       <Modal
         isOpen={modalPadamBuka}
         onClose={() => setModalPadamBuka(false)}
-        title="⚠️ Sahkan Padam Tabung">
+        title="Sahkan Padam Tabung">
         <div className="flex flex-col gap-4">
           <p className="text-gray-700 font-medium text-base">
             Adakah anda benar-benar pasti mahu memadam tabung bernama{" "}
-            <strong className="text-gray-900 font-black">
+            <strong className="text-gray-900 font-bold">
               "{tabungTerpilih?.nama_tabung}"
             </strong>
             ? Tindakan ini tidak boleh diundurkan semula.
           </p>
 
           {errorAksi && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-4 rounded-xl leading-relaxed">
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold p-4 rounded-xl leading-relaxed">
               {errorAksi}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-2 pt-3 border-t border-gray-100">
             <Button
               variant="secondary"
               onClick={() => setModalPadamBuka(false)}
               disabled={submitting}>
-              Batal, Jangan Padam
+              Batal
             </Button>
             <button
               type="button"
               onClick={kendaliPadam}
               disabled={submitting}
-              className="px-5 py-3 rounded-lg font-black bg-rose-600 text-white hover:bg-rose-700 active:scale-95 transition-all cursor-pointer text-center disabled:opacity-50">
-              {submitting ? "Memadam..." : "Ya, Padam Tetap Padam"}
+              className="px-5 py-3.5 rounded-xl font-bold bg-rose-600 text-white hover:bg-rose-700 active:scale-95 transition-all cursor-pointer text-center disabled:opacity-50 text-base w-full sm:w-auto">
+              {submitting ? "Memadam..." : "Ya, Padam"}
             </button>
           </div>
         </div>

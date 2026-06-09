@@ -11,7 +11,6 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
   const [jumlah, setJumlah] = useState("");
   const [keterangan, setKeterangan] = useState("");
 
-  // File Upload States
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState("");
 
@@ -24,7 +23,6 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
 
     try {
       setErrorBorang("");
-      // Compress immediately on the frontend
       const compressed = await compressReceipt(file);
       setSelectedFile(compressed);
       setFilePreview(URL.createObjectURL(compressed));
@@ -54,7 +52,6 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
     let urlResit = null;
 
     try {
-      // If a receipt file exists, upload it directly to Supabase Storage free bucket
       if (selectedFile) {
         const fileExt = selectedFile.name.split(".").pop();
         const pathFail = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -75,7 +72,7 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
         jenis,
         jumlah: parseFloat(jumlah),
         keterangan: keterangan.trim(),
-        url_resit: urlResit, // Saved link target column
+        url_resit: urlResit,
       });
 
       if (!hasil.success) {
@@ -89,42 +86,46 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={hantarBorang} className="flex flex-col gap-2">
-      {/* 1. PILIHAN JENIS DUIT */}
-      <div className="flex flex-col gap-2 mb-3">
-        <label className="text-gray-750 font-bold text-sm sm:text-base">
+    <form onSubmit={hantarBorang} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <label className="text-gray-700 font-bold text-base">
           Kategori Transaksi
         </label>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setJenis("masuk")}
-            className={`py-3 rounded-xl font-black text-center text-sm sm:text-base border-2 transition-all cursor-pointer
-              ${jenis === "masuk" ? "bg-emerald-50 border-emerald-600 text-emerald-800 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
-            📥 DUIT MASUK
+            className={`py-3.5 px-4 rounded-xl font-bold text-center text-sm border-2 transition-all cursor-pointer ${
+              jenis === "masuk"
+                ? "bg-emerald-50 border-emerald-600 text-emerald-900 shadow-sm"
+                : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+            }`}>
+            Duit Masuk
           </button>
           <button
             type="button"
             onClick={() => setJenis("keluar")}
-            className={`py-3 rounded-xl font-black text-center text-sm sm:text-base border-2 transition-all cursor-pointer
-              ${jenis === "keluar" ? "bg-rose-50 border-rose-600 text-rose-800 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}`}>
-            📤 DUIT KELUAR
+            className={`py-3.5 px-4 rounded-xl font-bold text-center text-sm border-2 transition-all cursor-pointer ${
+              jenis === "keluar"
+                ? "bg-rose-50 border-rose-600 text-rose-900 shadow-sm"
+                : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+            }`}>
+            Duit Keluar
           </button>
         </div>
       </div>
 
-      {/* 2. PILIHAN TABUNG DANA */}
-      <div className="flex flex-col gap-2 mb-4">
+      <div className="flex flex-col gap-2">
         <label
           htmlFor="tabung-select"
-          className="text-gray-750 font-bold text-sm sm:text-base">
-          Simpan / Tolak Dari Tabung <span className="text-rose-500">*</span>
+          className="text-gray-700 font-bold text-base">
+          Simpan / Tolak Dari Tabung <span className="text-rose-600">*</span>
         </label>
         <select
           id="tabung-select"
           value={tabungId}
           onChange={(e) => setTabungId(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none font-medium text-gray-800">
+          className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 outline-none font-semibold text-gray-800 shadow-sm">
           <option value="">-- Sila Pilih Tabung Kampung --</option>
           {tabungList.map((t) => (
             <option key={t.id} value={t.id}>
@@ -134,7 +135,6 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
         </select>
       </div>
 
-      {/* 3. TARIKH & JUMLAH WANG */}
       <Input
         label="Tarikh Transaksi"
         id="tarikh"
@@ -143,6 +143,7 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
         onChange={(e) => setTarikh(e.target.value)}
         required
       />
+
       <Input
         label="Jumlah Wang (RM)"
         id="jumlah"
@@ -154,36 +155,34 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
         required
       />
 
-      {/* 4. KETERANGAN / REKOD NOTA */}
-      <div className="flex flex-col gap-2 mb-4">
+      <div className="flex flex-col gap-2">
         <label
           htmlFor="keterangan"
-          className="text-gray-750 font-bold text-sm sm:text-base">
-          Keterangan / Tujuan <span className="text-rose-500">*</span>
+          className="text-gray-700 font-bold text-base">
+          Keterangan / Tujuan <span className="text-rose-600">*</span>
         </label>
         <textarea
           id="keterangan"
           rows="3"
-          placeholder="Tulis tujuan transaksi"
+          placeholder="Tulis tujuan transaksi secara jelas"
           value={keterangan}
           onChange={(e) => setKeterangan(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 font-medium text-gray-800"
+          className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base outline-none focus:border-green-600 focus:ring-4 focus:ring-green-50 font-semibold text-gray-800 shadow-sm"
         />
       </div>
 
-      {/* 🔥 5. BORANG MUAT NAIK RESIT (NEW) */}
-      <div className="flex flex-col gap-2 mb-4 border-2 border-dashed border-gray-200 p-4 rounded-xl bg-gray-50/50">
-        <label className="text-gray-750 font-bold text-sm sm:text-base">
-          Muat Naik Resit / Bukti Fail (Opsional)
+      <div className="flex flex-col gap-2 border-2 border-dashed border-gray-200 p-4 rounded-xl bg-gray-50/50">
+        <label className="text-gray-700 font-bold text-base">
+          Muat Naik Resit / Bukti Fail (Pilihan)
         </label>
         <input
           type="file"
           accept="image/*,application/pdf"
           onChange={kendaliFailChange}
-          className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer text-gray-500"
+          className="text-sm file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer text-gray-500"
         />
         {filePreview && (
-          <div className="mt-3 relative w-24 h-24 border rounded-lg overflow-hidden bg-white">
+          <div className="mt-3 relative w-24 h-24 border rounded-xl overflow-hidden bg-white">
             <img
               src={filePreview}
               alt="Preview Resit"
@@ -194,12 +193,12 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
       </div>
 
       {errorBorang && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-lg mb-2">
-          ⚠️ {errorBorang}
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm font-bold p-3 rounded-xl">
+          {errorBorang}
         </div>
       )}
 
-      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 pt-2 border-t border-gray-100">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 pt-3 border-t border-gray-100">
         <Button variant="secondary" onClick={onCancel} disabled={submitting}>
           Batal
         </Button>
@@ -207,9 +206,7 @@ export const TransactionForm = ({ tabungList = [], onSave, onCancel }) => {
           type="submit"
           variant={jenis === "masuk" ? "masuk" : "keluar"}
           disabled={submitting}>
-          {submitting
-            ? "Sedang Disimpan..."
-            : `Sahkan Rekod ${jenis === "masuk" ? "Masuk" : "Keluar"}`}
+          {submitting ? "Sedang Disimpan..." : "Sahkan Rekod"}
         </Button>
       </div>
     </form>
