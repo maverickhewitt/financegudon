@@ -1,6 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+// Adjust this import path to point to your Supabase client configuration file
+import { supabase } from "../lib/supabaseClient";
 
 export const Layout = ({ children, currentTab, setCurrentTab }) => {
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Fetch the initial state when the layout mounts
+    const fetchDemoStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", "is_demo_mode")
+          .single();
+
+        if (data) {
+          setIsDemoMode(data.value);
+        }
+      } catch (err) {
+        console.error("Error fetching demo status:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDemoStatus();
+
+    // 2. Subscribe to real-time changes so it toggles instantly during live views
+    const settingsChannel = supabase
+      .channel("public:app_settings")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "app_settings",
+          filter: "key=eq.is_demo_mode",
+        },
+        (payload) => {
+          if (payload.new) {
+            setIsDemoMode(payload.new.value);
+          }
+        },
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(settingsChannel);
+    };
+  }, []);
+
   const menuItems = [
     {
       id: "dashboard",
@@ -78,6 +130,13 @@ export const Layout = ({ children, currentTab, setCurrentTab }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      {/* CONDITIONALLY RENDER BANNER BASED ON SUPABASE TOGGLE */}
+      {!loading && isDemoMode && (
+        <div className="bg-red-600 text-white text-center py-3 px-4 font-black text-sm md:text-base tracking-widest uppercase shadow-inner animate-pulse sticky top-0 md:relative z-50 print:hidden">
+          ⚠️ DEMO DATA ONLY — NOT REAL DATA ⚠️
+        </div>
+      )}
+
       <header className="bg-emerald-900 text-white shadow-md md:sticky md:top-0 z-45 print:hidden shrink-0">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="text-center md:text-left">
