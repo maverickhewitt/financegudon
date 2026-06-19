@@ -25,9 +25,45 @@ export const useTabung = () => {
         .select("*");
 
       if (bakiError) throw bakiError;
-      setBakiTabung(baki);
+
+      const { data: txs, error: txsError } = await supabase
+        .from("buku_tunai")
+        .select("tabung_id, jenis, kaedah, jumlah");
+
+      if (txsError) throw txsError;
+
+      const bakiDikira = baki.map((item) => {
+        let tunaiMasuk = 0;
+        let tunaiKeluar = 0;
+        let bankMasuk = 0;
+        let bankKeluar = 0;
+
+        txs.forEach((tx) => {
+          if (tx.tabung_id === item.tabung_id) {
+            if (tx.kaedah === "cash") {
+              if (tx.jenis === "masuk") tunaiMasuk += Number(tx.jumlah || 0);
+              if (tx.jenis === "keluar") tunaiKeluar += Number(tx.jumlah || 0);
+            } else if (tx.kaedah === "bank") {
+              if (tx.jenis === "masuk") bankMasuk += Number(tx.jumlah || 0);
+              if (tx.jenis === "keluar") bankKeluar += Number(tx.jumlah || 0);
+            }
+          }
+        });
+
+        return {
+          ...item,
+          baki_tunai: tunaiMasuk - tunaiKeluar,
+          baki_bank: bankMasuk - bankKeluar,
+          total_tunai_masuk: tunaiMasuk,
+          total_tunai_keluar: tunaiKeluar,
+          total_bank_masuk: bankMasuk,
+          total_bank_keluar: bankKeluar,
+        };
+      });
+
+      setBakiTabung(bakiDikira);
     } catch (err) {
-      console.error("Ralat ambil data tabung:", err.message);
+      console.error(err.message);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -50,7 +86,6 @@ export const useTabung = () => {
     }
   };
 
-  // 🔥 FUNGSI BARU: Kemaskini Maklumat Tabung
   const updateTabung = async (id, namaTabung, keteranganTabung) => {
     try {
       const { error: updateError } = await supabase
@@ -65,12 +100,11 @@ export const useTabung = () => {
       await fetchTabungData();
       return { success: true };
     } catch (err) {
-      console.error("Ralat kemaskini tabung:", err.message);
+      console.error(err.message);
       return { success: false, error: err.message };
     }
   };
 
-  // 🔥 FUNGSI BARU: Padam Tabung (Bersama Safety Rail)
   const deleteTabung = async (id) => {
     try {
       const { error: deleteError } = await supabase
@@ -82,14 +116,12 @@ export const useTabung = () => {
       await fetchTabungData();
       return { success: true };
     } catch (err) {
-      console.error("Ralat memadam tabung:", err.message);
-
-      // Mengesan sekiranya database menyekat pemadaman kerana ada rekod transaksi
+      console.error(err.message);
       if (err.message?.includes("foreign key") || err.code === "23503") {
         return {
           success: false,
           error:
-            "Tabung ini TIDAK BOLEH dipadam kerana sudah ada rekod duit masuk/keluar di dalamnya! Sila tukar atau padam transaksi berkaitan di Buku Tunai terlebih dahulu.",
+            "Tabung ini tidak boleh dipadam kerana mempunyai rekod transaksi aliran tunai atau bank di dalamnya.",
         };
       }
       return { success: false, error: err.message };
@@ -106,8 +138,8 @@ export const useTabung = () => {
     loading,
     error,
     addTabung,
-    updateTabung, // Ekspot update fungsi
-    deleteTabung, // Ekspot delete fungsi
+    updateTabung,
+    deleteTabung,
     refreshTabung: fetchTabungData,
   };
 };

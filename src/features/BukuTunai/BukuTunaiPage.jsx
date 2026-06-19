@@ -13,21 +13,19 @@ export const BukuTunaiPage = () => {
     error,
     addTransaction,
     updateTransaction,
-    deleteTransaction, // Ambil fungsi padam
+    deleteTransaction,
     verifyTransactionBendahari,
     verifyTransactionPengerusi,
   } = useBukuTunai();
 
-  const { tabungList } = useTabung();
+  const { bakiTabung, refreshTabung } = useTabung();
   const [modalBuka, setModalBuka] = useState(false);
   const [editData, setEditData] = useState(null);
 
-  // State khas untuk fungsi padam
   const [modalPadamBuka, setModalPadamBuka] = useState(false);
   const [transaksiUntukDipadam, setTransaksiUntukDipadam] = useState(null);
   const [submittingPadam, setSubmittingPadam] = useState(false);
 
-  // Interactive role switcher for live stakeholder presentations
   const [userRole, setUserRole] = useState("bendahari");
 
   const kendaliBukaTambah = () => {
@@ -64,6 +62,7 @@ export const BukuTunaiPage = () => {
     }
 
     if (hasil.success) {
+      await refreshTabung();
       setModalBuka(false);
       setEditData(null);
     }
@@ -76,10 +75,25 @@ export const BukuTunaiPage = () => {
     setSubmittingPadam(false);
 
     if (hasil.success) {
+      await refreshTabung();
       setModalPadamBuka(false);
       setTransaksiUntukDipadam(null);
     } else {
       alert("Gagal memadam rekod: " + (hasil.error || "Ralat tidak diketahui"));
+    }
+  };
+
+  const kendaliSahkanBendahari = async (id) => {
+    const hasil = await verifyTransactionBendahari(id, true);
+    if (hasil.success) {
+      await refreshTabung();
+    }
+  };
+
+  const kendaliSahkanPengerusi = async (id) => {
+    const hasil = await verifyTransactionPengerusi(id, true);
+    if (hasil.success) {
+      await refreshTabung();
     }
   };
 
@@ -95,7 +109,6 @@ export const BukuTunaiPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Dynamic Simulation Bar for Demos */}
       <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm print:hidden">
         <div className="text-xs sm:text-sm font-semibold text-amber-900">
           <strong className="font-bold">Mod Demo Jawatankuasa:</strong> Tukar
@@ -139,19 +152,17 @@ export const BukuTunaiPage = () => {
         </div>
       )}
 
-      {/* Wire up interactive handlers directly to the spreadsheet interface */}
       <div className="mt-2">
         <TransactionTable
           transactions={transactions}
           userRole={userRole}
           onEdit={kendaliBukaEdit}
-          onDelete={kendaliBukaPadam} // Salurkan fungsi trigger padam
-          onSahkanBendahari={(id) => verifyTransactionBendahari(id, true)}
-          onSahkanPengerusi={(id) => verifyTransactionPengerusi(id, true)}
+          onDelete={kendaliBukaPadam}
+          onSahkanBendahari={kendaliSahkanBendahari}
+          onSahkanPengerusi={kendaliSahkanPengerusi}
         />
       </div>
 
-      {/* MODAL 1: Tambah / Kemaskini Transaksi */}
       <Modal
         isOpen={modalBuka}
         onClose={() => {
@@ -164,7 +175,7 @@ export const BukuTunaiPage = () => {
             : "Tambah Rekod Kewangan Kampung"
         }>
         <TransactionForm
-          tabungList={tabungList}
+          tabungList={bakiTabung}
           onSave={simpanTransaksiBaru}
           onCancel={() => {
             setModalBuka(false);
@@ -174,7 +185,6 @@ export const BukuTunaiPage = () => {
         />
       </Modal>
 
-      {/* MODAL 2: Pengesahan Padam Transaksi */}
       <Modal
         isOpen={modalPadamBuka}
         onClose={() => setModalPadamBuka(false)}

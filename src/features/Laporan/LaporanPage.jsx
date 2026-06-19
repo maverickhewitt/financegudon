@@ -9,11 +9,9 @@ export const LaporanPage = () => {
   const [tahun, setTahun] = useState(tahunSemasa.toString());
   const [bulan, setBulan] = useState((new Date().getMonth() + 1).toString());
 
-  // Memanggil useBukuTunai untuk mendapatkan item perincian satu-per-satu
   const { transactions, loading: loadingUrusniaga } = useBukuTunai();
   const { dataLaporan, loading: loadingRumusan, janaLaporan } = useLaporan();
 
-  // Negeri (state) bagi pemegang jawatan tandatangan laporan
   const [penyediaNama, setPenyediaNama] = useState("SAHARA BINTI JAIS");
   const [penyediaJawatan, setPenyediaJawatan] = useState("SETIAUSAHA");
   const [penyediaTarikh, setPenyediaTarikh] = useState("");
@@ -44,7 +42,6 @@ export const LaporanPage = () => {
   useEffect(() => {
     janaLaporan(tahun, bulan);
 
-    // Set tarikh lalai secara automatik mengikut hari bulan akhir pilihan
     const tarikhHariIni = new Date().toLocaleDateString("ms-MY");
     if (!penyediaTarikh) setPenyediaTarikh(tarikhHariIni);
     if (!pemeriksaTarikh) setPemeriksaTarikh(tarikhHariIni);
@@ -58,12 +55,23 @@ export const LaporanPage = () => {
   const sasaranTahunStr = tahun;
   const sasaranBulanStr = bulan.padStart(2, "0");
 
-  // Menapis data urusniaga buku tunai terperinci bagi bulan pilihan
-  const urusniagaBulanPilihan = transactions.filter((tx) => {
-    if (!tx.tarikh || bulan === "semua") return false;
-    const komponen = tx.tarikh.split("-");
-    return komponen[0] === sasaranTahunStr && komponen[1] === sasaranBulanStr;
-  });
+  const urusniagaBulanPilihan = transactions
+    .filter((tx) => {
+      if (!tx.tarikh || bulan === "semua") return false;
+      const komponen = tx.tarikh.split("-");
+      return komponen[0] === sasaranTahunStr && komponen[1] === sasaranBulanStr;
+    })
+    .sort((a, b) => {
+      const bandingTarikh = a.tarikh.localeCompare(b.tarikh);
+      if (bandingTarikh !== 0) return bandingTarikh;
+
+      const dokA = a.no_dokumen || "";
+      const dokB = b.no_dokumen || "";
+      return dokA.localeCompare(dokB, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
 
   const senaraiTerimaan = urusniagaBulanPilihan.filter(
     (tx) => tx.jenis === "masuk",
@@ -86,24 +94,20 @@ export const LaporanPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Penggayaan Media Cetak A4 Rasmi Yang Ditambah Baik */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
         @media print {
-          /* Paksa browser kekalkan warna dan grafik latar belakang */
           * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
 
-          /* Sembunyikan elemen UI Aplikasi */
           aside, nav, header, button, .print\\:hidden,
           .no-print-input-style {
             display: none !important;
           }
           
-          /* Susun atur saiz penuh untuk kertas A4 */
           body, main {
             background-color: white !important;
             padding: 0 !important;
@@ -119,13 +123,11 @@ export const LaporanPage = () => {
             max-width: 100% !important;
           }
           
-          /* Margin kertas fizikal */
           @page {
             size: A4 portrait;
             margin: 1.5cm;
           }
           
-          /* Elak jadual terpotong di tengah muka surat */
           table {
             page-break-inside: auto;
             width: 100% !important;
@@ -139,7 +141,6 @@ export const LaporanPage = () => {
             display: table-header-group;
           }
           
-          /* Penggayaan Input supaya menjadi teks cetakan dokumen */
           .printable-input-text {
             border: none !important;
             padding: 0 !important;
@@ -152,7 +153,6 @@ export const LaporanPage = () => {
             -webkit-appearance: none !important;
           }
           
-          /* Tajuk dan Border Jadual yang lebih jelas dalam cetakan */
           .print-border-black {
             border-color: #000 !important;
           }
@@ -164,7 +164,6 @@ export const LaporanPage = () => {
         }}
       />
 
-      {/* Tajuk Atas & Pemicu Cetak */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-gray-950 tracking-tight">
@@ -194,7 +193,6 @@ export const LaporanPage = () => {
         </button>
       </div>
 
-      {/* Penapis Carian (Sembunyi Semasa Cetak) */}
       <Card className="print:hidden bg-white border border-gray-200">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -229,7 +227,6 @@ export const LaporanPage = () => {
         </div>
       </Card>
 
-      {/* INPUT EDITOR TANDATANGAN (Sembunyi Semasa Cetak) */}
       <Card
         className="print:hidden bg-amber-50/60 border border-amber-200"
         title="Tetapan Nama Jawatankuasa Bagi Tandatangan">
@@ -323,9 +320,7 @@ export const LaporanPage = () => {
         </div>
       </Card>
 
-      {/* KOTAK DOKUMEN UTAMA (Sedia Untuk Dicetak Ke Kertas) */}
       <div className="main-report-box bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
-        {/* Kepala Surat (Letterhead) */}
         <div className="text-center border-b-2 border-gray-800 pb-5 mb-6 print-border-black">
           <h2 className="text-lg sm:text-xl font-extrabold uppercase text-gray-900 tracking-wide print-text-black">
             BUKU TUNAI DANA WANG MASJID AL-MUJAHIDIN
@@ -354,7 +349,6 @@ export const LaporanPage = () => {
           </p>
         ) : (
           <div className="space-y-8">
-            {/* BAHAGIAN 1: RUMUSAN PECAHAN IKUT TABUNG */}
             <div>
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-l-4 border-gray-800 pl-2 print-text-black print-border-black">
                 1. Ringkasan Imbangan Dana Tabung
@@ -413,7 +407,6 @@ export const LaporanPage = () => {
               </div>
             </div>
 
-            {/* BAHAGIAN 2: PERINCIAN BUTIRAN TERIMAAN (DUIT MASUK SATU PER SATU) */}
             {bulan !== "semua" && (
               <div>
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-l-4 border-gray-800 pl-2 print-text-black print-border-black">
@@ -487,7 +480,6 @@ export const LaporanPage = () => {
               </div>
             )}
 
-            {/* BAHAGIAN 3: PERINCIAN BUTIRAN BAYARAN (DUIT KELUAR SATU PER SATU) */}
             {bulan !== "semua" && (
               <div>
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 border-l-4 border-gray-800 pl-2 print-text-black print-border-black">
@@ -570,9 +562,7 @@ export const LaporanPage = () => {
           </div>
         )}
 
-        {/* KAKI DOKUMEN: TRADITIONAL SIGNATURE BLOCK */}
         <div className="mt-16 grid grid-cols-3 gap-4 sm:gap-6 text-xs font-bold text-center border-t border-gray-300 print-border-black pt-8 print-text-black">
-          {/* Ruangan Setiausaha */}
           <div className="flex flex-col items-center justify-between h-36">
             <span className="uppercase text-gray-900 print-text-black">
               DISEDIAKAN OLEH,
@@ -595,7 +585,6 @@ export const LaporanPage = () => {
             </div>
           </div>
 
-          {/* Ruangan Bendahari */}
           <div className="flex flex-col items-center justify-between h-36">
             <span className="uppercase text-gray-900 print-text-black">
               DISEMAK OLEH,
@@ -618,7 +607,6 @@ export const LaporanPage = () => {
             </div>
           </div>
 
-          {/* Ruangan Pengerusi */}
           <div className="flex flex-col items-center justify-between h-36">
             <span className="uppercase text-gray-900 print-text-black">
               DISAHKAN BENAR OLEH,

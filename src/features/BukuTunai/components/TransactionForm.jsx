@@ -3,6 +3,7 @@ import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 import { compressReceipt } from "../../../utils/compressor";
 import { supabase } from "../../../lib/supabaseClient";
+import { formatRM } from "../../../utils/formatters";
 
 export const TransactionForm = ({
   tabungList = [],
@@ -20,10 +21,36 @@ export const TransactionForm = ({
   const [pemohon, setPemohon] = useState("");
   const [rujukanBank, setRujukanBank] = useState("");
 
+  const [tabungBantuanId, setTabungBantuanId] = useState("");
+  const [jumlahTabungUtama, setJumlahTabungUtama] = useState(0);
+  const [jumlahTabungBantuan, setJumlahTabungBantuan] = useState(0);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorBorang, setErrorBorang] = useState("");
+
+  const tabungTerpilih = tabungList.find(
+    (t) => t.tabung_id === tabungId || t.id === tabungId,
+  );
+
+  const bakiTersedia = tabungTerpilih
+    ? kaedah === "cash"
+      ? Number(tabungTerpilih.baki_tunai || 0)
+      : Number(tabungTerpilih.baki_bank || 0)
+    : 0;
+
+  const memerlukanBantuan = jenis === "keluar" && Number(jumlah) > bakiTersedia;
+
+  const tabungBantuanTerpilih = tabungList.find(
+    (t) => t.tabung_id === tabungBantuanId || t.id === tabungBantuanId,
+  );
+
+  const bakiBantuanTersedia = tabungBantuanTerpilih
+    ? kaedah === "cash"
+      ? Number(tabungBantuanTerpilih.baki_tunai || 0)
+      : Number(tabungBantuanTerpilih.baki_bank || 0)
+    : 0;
 
   useEffect(() => {
     if (editData) {
@@ -42,6 +69,20 @@ export const TransactionForm = ({
     }
   }, [editData]);
 
+  useEffect(() => {
+    if (memerlukanBantuan) {
+      const nilaiJumlah = Number(jumlah) || 0;
+      setJumlahTabungUtama(bakiTersedia > 0 ? bakiTersedia : 0);
+      setJumlahTabungBantuan(
+        bakiTersedia > 0 ? nilaiJumlah - bakiTersedia : nilaiJumlah,
+      );
+    } else {
+      setJumlahTabungUtama(Number(jumlah) || 0);
+      setJumlahTabungBantuan(0);
+      setTabungBantuanId("");
+    }
+  }, [jumlah, bakiTersedia, memerlukanBantuan]);
+
   const kendaliFailChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -59,14 +100,28 @@ export const TransactionForm = ({
     e.preventDefault();
     setErrorBorang("");
 
-    // Minimum critical requirements to maintain database integrity
     if (!tabungId) {
-      setErrorBorang("Sila pilih dana tabung.");
+      setErrorBorang("Sila pilih dana tabung utama.");
       return;
     }
     if (!jumlah || Number(jumlah) <= 0) {
       setErrorBorang("Sila masukkan jumlah wang yang sah.");
       return;
+    }
+
+    if (memerlukanBantuan) {
+      if (!tabungBantuanId) {
+        setErrorBorang(
+          "Sila pilih tabung bantuan untuk menampung kurangan dana.",
+        );
+        return;
+      }
+      if (jumlahTabungBantuan > bakiBantuanTersedia) {
+        setErrorBorang(
+          `Baki tabung bantuan tidak mencukupi! Dana bantuan tersedia hanya ${formatRM(bakiBantuanTersedia)} tetapi keperluan baki adalah sebanyak ${formatRM(jumlahTabungBantuan)}.`,
+        );
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -85,32 +140,60 @@ export const TransactionForm = ({
         urlResit = data.publicUrl;
       }
 
-      // Dynamic default text fallback if non-technical users leave description blank
       const finalKeterangan = keterangan.trim()
         ? keterangan.trim()
         : jenis === "masuk"
           ? "Terimaan Am"
           : "Bayaran Am";
 
-      const payload = {
-        tabung_id: tabungId,
-        tarikh,
-        jenis,
-        kaedah,
-        jumlah: parseFloat(jumlah),
-        keterangan: finalKeterangan,
-        no_dokumen: noDokumen.trim() || "-",
-        pemohon: jenis === "keluar" ? pemohon.trim() || "-" : "",
-        rujukan_bank: kaedah === "bank" ? rujukanBank.trim() || "-" : "",
-        url_resit: urlResit,
-      };
+      let hasil = { success: true };
 
-      const hasil = await onSave(payload);
+      if (jumlahTabungUtama > 0) {
+        const payload = {
+          tabung_id: tabungId,
+          tarikh,
+          jenis,
+          kaedah,
+          jumlah: parseFloat(jumlahTabungUtama),
+          keterangan: memerlukanBantuan
+            ? `${finalKeterangan} (Pecahan Bahagian 1)`
+            : finalKeterangan,
+          no_dokumen: noDokumen.trim() || "-",
+          pemohon: jenis === "keluar" ? pemohon.trim() || "-" : "",
+          rujukan_bank: kaedah === "bank" ? rujukanBank.trim() || "-" : "",
+          url_resit: urlResit,
+        };
+        hasil = await onSave(payload);
+      }
+
+      if (hasil.success && memerlukanBantuan && jumlahTabungBantuan > 0) {
+        const payloadBantuan = {
+          tabung_id: tabungBantuanId,
+          tarikh,
+          jenis,
+          kaedah,
+          jumlah: parseFloat(jumlahTabungBantuan),
+          keterangan:
+            jumlahTabungUtama > 0
+              ? `${finalKeterangan} (Suntikan Bantuan Berkembar)`
+              : finalKeterangan,
+          no_dokumen: noDokumen.trim() || "-",
+          pemohon: pemohon.trim() || "-",
+          rujukan_bank: kaedah === "bank" ? rujukanBank.trim() || "-" : "",
+          url_resit: urlResit,
+        };
+
+        const hasilBantuan = await onSave(payloadBantuan);
+        if (!jumlahTabungUtama > 0) {
+          hasil = hasilBantuan;
+        }
+      }
+
       if (!hasil.success) {
         setErrorBorang(hasil.error || "Gagal menyimpan rekod.");
       }
     } catch (err) {
-      setErrorBorang(`Masalah muat naik fail resit: ${err.message}`);
+      setErrorBorang(`Masalah sistem: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +201,6 @@ export const TransactionForm = ({
 
   return (
     <form onSubmit={hantarBorang} className="flex flex-col gap-4">
-      {/* Aliran Wang Selector */}
       <div className="flex flex-col gap-2">
         <label className="text-gray-700 font-bold text-base">Aliran Wang</label>
         <div className="grid grid-cols-2 gap-3">
@@ -169,7 +251,6 @@ export const TransactionForm = ({
         </div>
       </div>
 
-      {/* Kaedah Transaksi Selector */}
       <div className="flex flex-col gap-2">
         <label className="text-gray-700 font-bold text-base">
           Kaedah Transaksi
@@ -198,7 +279,63 @@ export const TransactionForm = ({
         </div>
       </div>
 
-      {/* Core Numbers Row */}
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="tabung-select"
+          className="text-gray-700 font-bold text-base">
+          Pilihan Tabung Peruntukan
+        </label>
+        <div className="relative">
+          <select
+            id="tabung-select"
+            value={tabungId}
+            onChange={(e) => setTabungId(e.target.value)}
+            className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 outline-none font-semibold text-gray-800 shadow-sm appearance-none">
+            <option value="">-- Pilih Tabung Utama --</option>
+            {tabungList.map((t) => (
+              <option key={t.tabung_id || t.id} value={t.tabung_id || t.id}>
+                {t.nama_tabung || t.nama}
+              </option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {tabungTerpilih && (
+        <div className="grid grid-cols-2 gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-600 font-bold">
+          <div>
+            <span className="block text-gray-400 uppercase tracking-wide">
+              Baki Tunai Tersedia
+            </span>
+            <span className="text-sm text-gray-900 block mt-0.5">
+              {formatRM(tabungTerpilih.baki_tunai || 0)}
+            </span>
+          </div>
+          <div className="border-l border-gray-200 pl-3">
+            <span className="block text-gray-400 uppercase tracking-wide">
+              Baki Bank Tersedia
+            </span>
+            <span className="text-sm text-gray-900 block mt-0.5">
+              {formatRM(tabungTerpilih.baki_bank || 0)}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label="Tarikh Rekod"
@@ -209,7 +346,7 @@ export const TransactionForm = ({
           required
         />
         <Input
-          label="Jumlah Wang (RM)"
+          label="Jumlah Wang Kos (RM)"
           id="jumlah"
           type="number"
           step="0.01"
@@ -220,44 +357,48 @@ export const TransactionForm = ({
         />
       </div>
 
-      {/* Dropdown & Dynamic Document Label Matching */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor="tabung-select"
-            className="text-gray-700 font-bold text-base">
-            Pilihan Tabung Peruntukan
-          </label>
-          <div className="relative">
-            <select
-              id="tabung-select"
-              value={tabungId}
-              onChange={(e) => setTabungId(e.target.value)}
-              className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 outline-none font-semibold text-gray-800 shadow-sm appearance-none">
-              <option value="">-- Pilih Tabung --</option>
-              {tabungList.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nama}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+      {memerlukanBantuan && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl flex flex-col gap-3">
+          <div className="text-xs font-bold text-amber-900 leading-relaxed">
+            Jumlah pengeluaran melebihi baki yang ada dalam tabung utama. Sila
+            pilih tabung sokongan di bawah untuk menampung kurangan dana
+            sebanyak {formatRM(jumlahTabungBantuan)}.
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="tabung-bantuan-select"
+              className="text-xs font-bold text-amber-900 uppercase">
+              Pilih Tabung Bantuan Tambahan
+            </label>
+            <div className="relative">
+              <select
+                id="tabung-bantuan-select"
+                value={tabungBantuanId}
+                onChange={(e) => setTabungBantuanId(e.target.value)}
+                className="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm bg-white focus:border-amber-600 outline-none font-bold text-amber-950 appearance-none shadow-sm">
+                <option value="">-- Pilih Tabung Pembantu --</option>
+                {tabungList
+                  .filter((t) => (t.tabung_id || t.id) !== tabungId)
+                  .map((t) => (
+                    <option
+                      key={t.tabung_id || t.id}
+                      value={t.tabung_id || t.id}>
+                      {t.nama_tabung || t.nama} (Tersedia:{" "}
+                      {formatRM(kaedah === "cash" ? t.baki_tunai : t.baki_bank)}
+                      )
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-gray-600 pt-1">
+            <div>Ditolak dari Utama: {formatRM(jumlahTabungUtama)}</div>
+            <div>Ditolak dari Bantuan: {formatRM(jumlahTabungBantuan)}</div>
+          </div>
         </div>
+      )}
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input
           label={
             jenis === "masuk" ? "No. Resit (Pilihan)" : "No. Baucer (Pilihan)"
@@ -272,36 +413,29 @@ export const TransactionForm = ({
           value={noDokumen}
           onChange={(e) => setNoDokumen(e.target.value)}
         />
+        {jenis === "keluar" && (
+          <Input
+            label="Pembekal / Penerima (Pilihan)"
+            id="pemohon"
+            type="text"
+            placeholder="Nama individu atau biro"
+            value={pemohon}
+            onChange={(e) => setPemohon(e.target.value)}
+          />
+        )}
       </div>
 
-      {/* Dynamic Recipient Name Layout based on Document Type */}
-      {jenis === "keluar" && (
+      {kaedah === "bank" && (
         <Input
-          label="Pembekal / Penerima (Pilihan)"
-          id="pemohon"
+          label="Maklumat Transaksi Bank (Pilihan)"
+          id="rujukanBank"
           type="text"
-          placeholder="Nama individu, syarikat atau biro khidmat berkaitan"
-          value={pemohon}
-          onChange={(e) => setPemohon(e.target.value)}
+          placeholder="Contoh: Instant Transfer / Rujukan Bank"
+          value={rujukanBank}
+          onChange={(e) => setRujukanBank(e.target.value)}
         />
       )}
 
-      {/* Highlighted Bank Contextual Interface Segment */}
-      {kaedah === "bank" && (
-        <div className="p-4 bg-blue-50/60 border border-blue-200 rounded-xl flex flex-col gap-1">
-          <Input
-            label="Maklumat / Perihal Transaksi Bank (Pilihan)"
-            id="rujukanBank"
-            type="text"
-            placeholder="Contoh: Kedudukan Bank Islam / Instant Transfer Ref"
-            value={rujukanBank}
-            onChange={(e) => setRujukanBank(e.target.value)}
-            className="bg-white"
-          />
-        </div>
-      )}
-
-      {/* Description Context Label */}
       <div className="flex flex-col gap-2">
         <label
           htmlFor="keterangan"
@@ -311,14 +445,13 @@ export const TransactionForm = ({
         <textarea
           id="keterangan"
           rows="2"
-          placeholder="Tulis butiran keterangan ringkas jika ada"
+          placeholder="Tulis butiran keterangan perihal transaksi jika ada"
           value={keterangan}
           onChange={(e) => setKeterangan(e.target.value)}
           className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-base outline-none focus:border-green-600 focus:ring-4 focus:ring-green-50 font-semibold text-gray-800 shadow-sm"
         />
       </div>
 
-      {/* Receipt Image File Handling */}
       <div className="flex flex-col gap-2 border-2 border-dashed border-gray-200 p-4 rounded-xl bg-gray-50/50">
         <label className="text-gray-700 font-bold text-base flex items-center gap-2">
           <svg
@@ -339,7 +472,7 @@ export const TransactionForm = ({
               d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <span>Lampiran Dokumen Bukti / Resit (Pilihan)</span>
+          <span>Lampiran Fail Resit Bukti (Pilihan)</span>
         </label>
         <input
           type="file"
@@ -364,7 +497,6 @@ export const TransactionForm = ({
         </div>
       )}
 
-      {/* Submission Triggers */}
       <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-2 pt-3 border-t border-gray-100">
         <Button variant="secondary" onClick={onCancel} disabled={submitting}>
           Batal
